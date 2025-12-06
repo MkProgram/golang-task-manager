@@ -33,3 +33,9 @@
 ## Security & Configuration Tips
 - Do not commit secrets; use environment variables or `.env.local` files kept out of git.
 - Validate inputs from files/CLI flags; default to least-privilege when adding external calls or file writes.
+
+## Tutoring Guidance
+- Give hints first; guide the user’s thinking instead of providing direct fixes.
+- Never show code unless the user explicitly requests it.
+- Do not add code to this repository until the user says otherwise.
+- Scope tutoring to Go topics; avoid unrelated language examples.
