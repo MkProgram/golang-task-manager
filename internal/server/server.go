@@ -12,10 +12,10 @@ type Server struct {
 	httpServer *http.Server
 }
 
-func New(addr string) *Server {
+func New(addr string, store tasks.Store) *Server {
 	s := &http.Server{
 		Addr:         addr,
-		Handler:      tasks.Routes(),
+		Handler:      tasks.Routes(store),
 		ReadTimeout:  15 * time.Second,
 		WriteTimeout: 15 * time.Second,
 	}

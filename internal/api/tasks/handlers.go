@@ -1,23 +1,31 @@
 package tasks
 
 import (
+	"context"
 	"encoding/json"
+	"log"
 	"net/http"
 	"strings"
+	"time"
 )
 
 type Store interface {
-	List() []TaskDTO
-	Create(name string) TaskDTO
+	List(ctx context.Context) ([]TaskDTO, error)
+	Create(ctx context.Context, name string) (TaskDTO, error)
 }
 
-func Routes() http.Handler {
+func Routes(store Store) http.Handler {
 	mux := http.NewServeMux()
-	store := NewSQLStore()
 	mux.Handle("/task", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodGet:
-			writeJSON(w, store.List(), http.StatusOK)
+			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			defer cancel()
+			tasks, err := store.List(ctx)
+			if err != nil {
+				log.Fatal("get tasks: %w", err)
+			}
+			writeJSON(w, tasks, http.StatusOK)
 		case http.MethodPost:
 			var req struct {
 				Description string `json:"description"`
@@ -26,7 +34,12 @@ func Routes() http.Handler {
 				http.Error(w, "bad request", http.StatusBadRequest)
 				return
 			}
-			p := store.Create(req.Description)
+			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			defer cancel()
+			p, err := store.Create(ctx, req.Description)
+			if err != nil {
+				log.Fatal("create task: %w", err)
+			}
 			writeJSON(w, p, http.StatusCreated)
 		default:
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
